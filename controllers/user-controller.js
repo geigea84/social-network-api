@@ -42,8 +42,8 @@ const userController = {
     },
 
     //POST a new user
-    // example data
     /*
+    example data
     {
         "username": "lernantino",
         "email": "lernantino@gmail.com"
