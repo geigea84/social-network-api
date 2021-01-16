@@ -32,7 +32,10 @@ const UserSchema = new Schema(
             unique: true,
             required: "Please enter an email address",
             //see Thought.js dateFormat
-            //validate: [validateEmail, "Please enter a valid email address"]
+            validate: {
+                validator: (email) => validateEmail(email), 
+                message: "Please enter a valid email address"
+            }
         },
         //reference by respective id //require ThoughtSchema at the top?
         thoughts: [
