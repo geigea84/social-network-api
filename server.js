@@ -9,11 +9,10 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.use(require("./routes"));
 
-//here or /config/connection.js?
-db.set("debug", true);
-
 db.once("open", () => {
     app.listen(PORT, () => {
-        console.log(`Connected on localhost:${PORT}`);
+        console.log("==================================================");
+        console.log(`Connected on localhost: ${PORT}`);
+        console.log("==================================================");
     });
 });

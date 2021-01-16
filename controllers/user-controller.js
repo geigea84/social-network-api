@@ -60,7 +60,10 @@ const userController = {
 
     //PUT to update a user by their _id (do we need to accomodate validators here? 18.5.3)
     updateUser({params, body}, res) {
-        User.findOneAndUpdate({_id: params.id}, body, {new: true})
+        User.findOneAndUpdate(
+            {_id: params.id},
+             body,
+            {new: true, runValidators: true})
         .then(dbUserData => {
             if (!dbUserData) {
                 res.status(404).json({message: "No user found with this id"});
