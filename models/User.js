@@ -1,6 +1,5 @@
 const {Schema, model} = require("mongoose");
-const validateEmail   = require("../utils/validateEmail");
-const uniqueValidator = require("mongoose-unique-validator");
+//const uniqueValidator = require("mongoose-unique-validator");
 
 //https://mongoosejs.com/docs/faq.html
 
@@ -31,11 +30,10 @@ const UserSchema = new Schema(
             type: String,
             unique: true,
             required: "Please enter an email address",
-            //see Thought.js dateFormat
-            validate: {
-                validator: (email) => validateEmail(email), 
-                message: "Please enter a valid email address"
-            }
+            match: [
+                /^([a-z0-9_.-]+)@([\da-z.-]+).([a-z.]{2,6})$/,
+                "Please enter a valid email address"
+            ]
         },
         //reference by respective id //require ThoughtSchema at the top?
         thoughts: [
@@ -64,7 +62,7 @@ const UserSchema = new Schema(
 
 //https://www.npmjs.com/package/mongoose-unique-validator
 //applying unique validation handling
-UserSchema.plugin(uniqueValidator);
+//UserSchema.plugin(uniqueValidator); - shut down PUT routes :(
 
 UserSchema.virtual("friendCount").get(function() {
     return this.friends.length;

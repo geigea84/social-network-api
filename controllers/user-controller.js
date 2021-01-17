@@ -9,6 +9,8 @@ const userController = {
     //GET all users
     getAllUsers(req, res) {
         User.find({})
+        .collation({locale: "en_US", strength: 1})
+        .sort({username: 1})
         .then(dbUserData => res.json(dbUserData))
         .catch(err => {
             console.log(err);
@@ -80,21 +82,25 @@ const userController = {
     //DELETE a user by their _id, remove users associated thoughts (and comments?)
     //use params.id instead?
     deleteUser({params}, res) {
-        User.findOneAndDelete({_id: params.userId})
+        User.findOneAndDelete({_id: params.id})
         .then(dbUserData => {
             if (!dbUserData) {
                 res.status(404).json({message: "No user found with this id"});
                 return;
             }
             //use deleteMany()?
-            //Thought.deleteMany(
-            //    {_id: {$in: dbUserData.thoughts}}
-            //)
+            return Thought.deleteMany(
+                {_id: params.id},
+                {$in: {_id: dbUserData.thoughts}}
+            );
             //Thought.find({$pullAll})?
-            Thought.updateMany(
-                {$pullAll: {username: params.userId}}
-            )
-            return;
+            //Thought.updateMany(
+            //    //use id instead of userId?
+            //    {$pullAll: {username: body.userId}}
+            //);
+        })
+        .then(() => {
+            res.json({message: "User deleted"});
         })
         .catch(err => {
             console.log(err);
@@ -109,9 +115,21 @@ const userController = {
     //POST to add a new friend to a user's friend list
     //incorporate friendId?  see pizza-hunt/controllers/comment-controller
     //will this be ok because it has a different api endpoint?
-    addFriend({body}, res) {
-        User.create(body)
-        .then(dbUserData = res.json(dbUserData))
+    addFriend({params}, res) {
+        User.findOneAndUpdate(
+            {_id: params.userId},
+            //$push adds all, $addToSet doesn't add duplicates
+            //User model forces unique, do we need built-in redundancy here?
+            //$push is faster (doesn't have to check for duplicates)
+            {$push: {friends: params.friendId}},
+            {new: true, runValidators: true}
+        )
+        .then((dbUserData) => {
+            if(!dbUserData) {
+                res.status(404).json({message: "No user found with this id"});
+            }
+            res.json(dbUserData)
+        })
         .catch(err => {
             console.log(err);
             res.status(400).json(err);
@@ -119,8 +137,12 @@ const userController = {
     },
 
     //DELETE to remove a friend from a user's friend list
-    deleteFriend({params, body}, res) {
-        User.findOneAndDelete({_id: params.id})
+    deleteFriend({params}, res) {
+        User.findOneAndUpdate(
+            {_id: params.userId},
+            {$pull: {friends: params.friendId}},
+            {new: true, runValidators: true}
+        )
         .then(dbUserData => {
             if(!dbUserData) {
                 res.status(404).json({message: "No user found with this id"});

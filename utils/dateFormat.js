@@ -99,7 +99,8 @@ module.exports = (
     //minutes 0-9 not displaying two places (0 instead of 00)
     //see if the following corrects this issue
     if (minutes < 10) {
-        minutes = 0 + minutes;
+        minutes = "0" + minutes;
+        //minutes = 0 + minutes;
     }
 
     //set `am` or `pm`

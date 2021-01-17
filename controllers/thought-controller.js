@@ -10,6 +10,7 @@ const thoughtController = {
     //should I sort this descending .sort({_id: -1})
     getAllThoughts(req, res) {
         Thought.find({})
+        .sort({createdAt: -1})
         .then(dbThoughtData => res.json(dbThoughtData))
         .catch(err => {
             console.log(err);
@@ -45,10 +46,10 @@ const thoughtController = {
     */
     createThought({body}, res) {
         Thought.create(body)
-        .then(({_id}) => {
+        .then((dbThoughtData) => {
             return User.findOneAndUpdate(
-                {_id: params.userId},
-                {$push: {thoughts: _id}},
+                {_id: body.userId},
+                {$push: {thoughts: dbThoughtData._id}},
                 {new: true, runValidators: true}
             );
         })
@@ -57,6 +58,7 @@ const thoughtController = {
                 res.status(404).json({message: "No user found with this id"});
                 return;
             }
+            res.json({message: "Thought added"});
         })
         .catch(err => {
             console.log(err);
@@ -92,7 +94,7 @@ const thoughtController = {
                 res.status(404).json({message: "No thought found with this id"});
                 return;
             }
-            res.json(dbThoughtData);
+            res.json({message: "Thought deleted"});
         })
         .catch(err => {
             console.log(err);
@@ -105,7 +107,7 @@ const thoughtController = {
     //==================================================
 
     //POST to create a reaction stored in a single thought's reactions array field
-    addReaction({body}, res) {
+    addReaction({params, body}, res) {
         Thought.findOneAndUpdate(
             {_id: params.thoughtId},
             {$push: {reactions: body}},
@@ -124,6 +126,10 @@ const thoughtController = {
         });
     },
 
+    //==================================================
+    //  /api/thoughts/:thoughtId/reactions/:reactionId
+    //==================================================
+
     //DELETE to pull and remove a reaction by the reaction's reactionId value
     deleteReaction({params}, res) {
         Thought.findOneAndUpdate(
@@ -131,7 +137,13 @@ const thoughtController = {
             {$pull: {reactions: {reactionId: params.reactionId}}},
             {new: true, runValidators: true}
         )
-        .then(dbThoughtData => res.json(dbThoughtData))
+        .then(dbThoughtData => {
+            if (!dbThoughtData) {
+                res.status(404).json({message: "No thought found with this id"});
+                return;
+            }
+            res.json({message: "Reaction deleted"});
+        })
         .catch(err => {
             console.log(err);
             res.status(400).json(err);
