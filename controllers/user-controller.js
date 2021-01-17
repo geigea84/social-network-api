@@ -90,8 +90,8 @@ const userController = {
             }
             //use deleteMany()?
             return Thought.deleteMany(
-                {_id: params.id},
-                {$in: {_id: dbUserData.thoughts}}
+                //{_id: body.id},
+                {_id: {$in: dbUserData.thoughts}}
             );
             //Thought.find({$pullAll})?
             //Thought.updateMany(
